@@ -1,0 +1,10 @@
+streamlit==1.25.0
+pandas==2.2.2
+numpy==1.26.4
+matplotlib==3.8.4
+scikit-learn==1.6.1  # Must match training version
+joblib==1.4.2
+reportlab==4.0.5
+tensorflow==2.15.0
+Pillow==9.5.0
+protobuf==3.20.3
