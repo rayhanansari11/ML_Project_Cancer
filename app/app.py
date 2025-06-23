@@ -291,7 +291,7 @@ elif page == "About":
     st.write("### Nurul Islam Opu")
     st.write("Dept. of CSE, Sylhet Engineering College")
     st.write("Email: nurulislamopu1@gmail.com")
-    st.write("GitHub: [github.com/nurulopu](https://github.com/nurulopu)")
+    st.write("GitHub: [github.com/nurulopu](https://github.com/Nurulislamopu)")
     st.write("LinkedIn: [linkedin.com/in/nurulopu](https://www.linkedin.com/in/nurul-islam-opu-8669ba247/)")
 
     st.write("""
