@@ -99,7 +99,7 @@ page = st.sidebar.radio("Select a Page", [
 if page == "Home":
     st.title("Welcome to the Cancer Prediction App")
     st.write("""
-        This app provides two types of cancer prediction:
+        This app provides two way of cancer prediction:
         - **Tabular model** (age, BMI, lifestyle factors)
         - **CNN image model** (chest X-ray images)
 
@@ -110,6 +110,19 @@ if page == "Home":
 elif page == "Cancer Prediction (Tabular)":
     st.title("🩺 Cancer Prediction (Tabular Data)")
     st.subheader("Enter patient details")
+
+    with st.expander("ℹ️ Dataset Structure Info"):
+        st.markdown("""
+        **Features:**  
+        - `Age` : 20 - 80 (years)  
+        - `Gender` : 0 = Male, 1 = Female  
+        - `BMI` : 15.0 - 40.0  
+        - `Smoking` : 0 = No, 1 = Yes  
+        - `GeneticRisk` : 0 = Low, 1 = Medium, 2 = High  
+        - `PhysicalActivity` : 0 - 10 (hours/week)  
+        - `AlcoholIntake` : 0 - 5 (units/week)  
+        - `CancerHistory` : 0 = No, 1 = Yes  
+        """)
 
     default_values = {
         "Age": 45,
@@ -122,28 +135,32 @@ elif page == "Cancer Prediction (Tabular)":
         "CancerHistory": 0
     }
 
-    types = {
-        "Age": int,
-        "Gender": int,
-        "BMI": float,
-        "Smoking": int,
-        "GeneticRisk": int,
-        "PhysicalActivity": float,
-        "AlcoholIntake": float,
-        "CancerHistory": int
-    }
+    # === Gender Selection with button-like radio ===
+    st.markdown("**Gender:**")
+    gender_col1, gender_col2 = st.columns(2)
+    with gender_col1:
+        if st.button("👨 Male"):
+            gender_val = 0
+    with gender_col2:
+        if st.button("👩 Female"):
+            gender_val = 1
 
-    user_input = []
-    for feature in feature_names:
-        val_type = types[feature]
-        val = st.number_input(
-            f"{feature}", 
-            value=val_type(default_values[feature]), 
-            step=1 if val_type == int else 0.1
-        )
-        user_input.append(val)
+    # Default to previous if no button press
+    if 'gender_val' not in locals():
+        gender_val = default_values["Gender"]
 
-    if st.button("Predict"):
+    # === Other Inputs ===
+    age = st.number_input("Age", min_value=20, max_value=80, value=default_values["Age"], step=1)
+    bmi = st.number_input("BMI", min_value=15.0, max_value=40.0, value=default_values["BMI"], step=0.1)
+    smoking = st.selectbox("Smoking (0=No, 1=Yes)", [0, 1], index=default_values["Smoking"])
+    genetic = st.selectbox("Genetic Risk (0=Low, 1=Medium, 2=High)", [0, 1, 2], index=default_values["GeneticRisk"])
+    activity = st.slider("Physical Activity (hours/week)", 0.0, 10.0, value=default_values["PhysicalActivity"], step=0.5)
+    alcohol = st.slider("Alcohol Intake (units/week)", 0.0, 5.0, value=default_values["AlcoholIntake"], step=0.5)
+    history = st.selectbox("Cancer History (0=No, 1=Yes)", [0, 1], index=default_values["CancerHistory"])
+
+    user_input = [age, gender_val, bmi, smoking, genetic, activity, alcohol, history]
+
+    if st.button("🔮 Predict"):
         input_df = pd.DataFrame([user_input], columns=feature_names)
         prediction = tabular_model.predict(input_df)[0]
         probability = tabular_model.predict_proba(input_df)[0][prediction]
@@ -177,6 +194,7 @@ elif page == "Cancer Prediction (Tabular)":
             file_name="cancer_prediction_report.pdf",
             mime="application/pdf"
         )
+
 
 # === CNN Image Prediction ===
 elif page == "Lung Cancer Prediction (Image CNN)":
@@ -222,42 +240,51 @@ elif page == "Lung Cancer Prediction (Image CNN)":
 # === Learn More ===
 elif page == "Learn More About Cancer":
     st.title("📘 Learn More About Cancer")
-    st.subheader("🔎 Common Causes of Cancer")
-    st.write("""
-    - Smoking and tobacco use  
-    - Obesity and unhealthy diet  
-    - Genetic mutations and family history  
-    - Exposure to radiation or harmful chemicals  
-    - Lack of physical activity  
-    - Alcohol consumption  
-    """)
 
-    st.subheader("💡 How to Deal With or Reduce Risk")
-    st.write("""
-    - Quit smoking and avoid secondhand smoke  
-    - Maintain a healthy diet and weight  
-    - Regular exercise and physical activity  
-    - Routine medical checkups  
-    - Limit alcohol consumption  
-    - Protect yourself from the sun  
-    """)
+    # Common Causes
+    with st.expander("🔎 **Common Causes of Cancer**", expanded=True):
+        st.info("""
+        - Smoking and tobacco use  
+        - Obesity and unhealthy diet  
+        - Genetic mutations and family history  
+        - Exposure to radiation or harmful chemicals  
+        - Lack of physical activity  
+        - Alcohol consumption  
+        """)
 
-    st.subheader("🌍 Cancer Impact in Bangladesh")
-    st.write("""
-    - Cancer is a growing public health concern in Bangladesh.  
-    - An estimated 150,000+ new cases are reported each year.  
-    - Major challenges include late diagnosis and limited access to advanced treatment.  
-    - Awareness, screening programs, and healthcare infrastructure are improving.  
-    """)
+    # Risk reduction
+    with st.expander("💡 **How to Deal With or Reduce Risk**", expanded=False):
+        st.success("""
+        - Quit smoking and avoid secondhand smoke  
+        - Maintain a healthy diet and weight  
+        - Regular exercise and physical activity  
+        - Routine medical checkups  
+        - Limit alcohol consumption  
+        - Protect yourself from the sun  
+        """)
 
-    st.subheader("📊 Stages of Cancer")
-    st.write("""
-    - **Stage 0**: Abnormal cells, not yet cancer.  
-    - **Stage I**: Small and localized tumor.  
-    - **Stage II & III**: Larger tumors, possible spread to lymph nodes.  
-    - **Stage IV**: Metastatic cancer, spread to other organs.  
-    """)
+    # Bangladesh impact + stages side by side
+    col1, col2 = st.columns(2)
 
+    with col1:
+        st.subheader("🌍 Cancer Impact in Bangladesh")
+        st.warning("""
+        - Cancer is a growing public health concern in Bangladesh.  
+        - An estimated 150,000+ new cases are reported each year.  
+        - Major challenges include late diagnosis and limited access to advanced treatment.  
+        - Awareness, screening programs, and healthcare infrastructure are improving.  
+        """)
+
+    with col2:
+        st.subheader("📊 Stages of Cancer")
+        st.info("""
+        - **Stage 0**: Abnormal cells, not yet cancer.  
+        - **Stage I**: Small and localized tumor.  
+        - **Stage II & III**: Larger tumors, possible spread to lymph nodes.  
+        - **Stage IV**: Metastatic cancer, spread to other organs.  
+        """)
+
+    # Hospitals
     st.subheader("🏥 Top Hospitals in Bangladesh")
     st.write("""
     - National Institute of Cancer Research & Hospital (NICRH), Dhaka  
@@ -277,34 +304,64 @@ elif page == "Learn More About Cancer":
     - Mayo Clinic, Rochester, USA  
     """)
 
-# === About ===
+    # YouTube awareness video
+    st.subheader("🎥 Cancer Awareness Video")
+    st.video("https://youtu.be/n8ioqyZu42w?si=rhtqSVNE9IWK-Rj3")
+
+
 elif page == "About":
-    st.title("About the App")
-    st.subheader("Created by:")
+    from PIL import Image
 
-    st.write("### Rayhan Mahmud Ansari")
-    st.write("Dept. of CSE, Sylhet Engineering College")
-    st.write("Email: rayhan_mahmud@sec.ac.bd")
-    st.write("GitHub: [github.com/rayhan-mahmud](https://github.com/rayhanansari11)")
-    st.write("LinkedIn: [linkedin.com/in/rayhanmahmud](https://www.linkedin.com/in/rayhan-mahmud-ansari-566d/?originalSubdomain=bd)")
+    st.title("👨‍💻 About the App")
 
-    st.write("### Nurul Islam Opu")
-    st.write("Dept. of CSE, Sylhet Engineering College")
-    st.write("Email: nurulislamopu1@gmail.com")
-    st.write("GitHub: [github.com/nurulopu](https://github.com/Nurulislamopu)")
-    st.write("LinkedIn: [linkedin.com/in/nurulopu](https://www.linkedin.com/in/nurul-islam-opu-8669ba247/)")
+    # === Contributors ===
+    st.subheader("👥 Created by")
 
-    st.write("""
-        This app combines two types of cancer prediction:
-        - A tabular model using features like age, BMI, smoking, etc.
-        - A CNN model using chest X-ray images for lung cancer detection
+    col1, col2 = st.columns(2)
 
-        The CNN model was built using transfer learning (Xception base + custom classifier layers).
+    with col1:
+        st.image("images/rayhan.jpg", width=150)  # replace with your image path
+        st.markdown("### **Rayhan Mahmud Ansari**")
+        st.write("📘 Dept. of CSE, Sylhet Engineering College")
+        st.write("📧 rayhan_mahmud@sec.ac.bd")
+        st.markdown("[🌐 GitHub](https://github.com/rayhanansari11) | [🔗 LinkedIn](https://www.linkedin.com/in/rayhan-mahmud-ansari-566d/)")
 
-        **Features:**
-        - Clean user interface with background image
-        - Predict cancer likelihood from both tabular data and images
-        - Probability visualization and PDF report download
-        - Educational resources about cancer causes, prevention, and treatment options
+    with col2:
+        st.image("images/opu.jpg", width=150)  # replace with your image path
+        st.markdown("### **Nurul Islam Opu**")
+        st.write("📘 Dept. of CSE, Sylhet Engineering College")
+        st.write("📧 nurulislamopu1@gmail.com")
+        st.markdown("[🌐 GitHub](https://github.com/Nurulislamopu) | [🔗 LinkedIn](https://www.linkedin.com/in/nurul-islam-opu-8669ba247/)")
+
+    # === App Details ===
+    st.markdown("---")
+    st.subheader("📱 What This App Does")
+    st.success("""
+    This app provides two modes of cancer prediction:
+    - 🧾 **Tabular model** using personal and lifestyle information
+    - 🩻 **CNN image model** analyzing chest X-ray images
     """)
-    st.write("### Model Version: 1.0.3")
+
+    st.info("🎯 Built using **machine learning** and **deep learning** with a focus on simplicity, reliability, and accessibility.")
+
+    st.markdown("#### 🔍 Key Features")
+    st.markdown("""
+    - ✅ Clean and intuitive user interface  
+    - 📥 PDF report generation with prediction summary  
+    - 📊 Visual representation of prediction confidence  
+    - 📚 Learn about causes, prevention, and treatment options  
+    - 🌐 International and local hospital info  
+    """)
+
+    # === Model Info Expandable ===
+    with st.expander("🧠 Model Details"):
+        st.markdown("""
+        - **Tabular Model**: Trained with logistic regression, random forest, and other classifiers.  
+        - **Image Model**: CNN using **Xception** as base + custom dense layers.  
+        - **Tools Used**: TensorFlow, scikit-learn, Streamlit, ReportLab, Matplotlib, etc.
+        """)
+
+    # === Version ===
+    st.markdown("---")
+    st.markdown("📦 **Model Version:** `v1.0.3`")
+    st.caption("Last updated: June 2025")
